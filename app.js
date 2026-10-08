@@ -1,11 +1,15 @@
 // app.js - servidor do sistema de controle de estoque
 
 const express = require('express');
+const cors = require('cors');
 const db = require('./db');
 
 const app = express();
 app.disable('x-powered-by');
 const PORT = 3000;
+
+// Autoriza o frontend (React, rodando na porta 5173) a conversar com este servidor
+app.use(cors({ origin: 'http://localhost:5173' }));
 
 // Permite que o servidor entenda dados enviados em formato JSON
 app.use(express.json());
