@@ -21,6 +21,7 @@ export default function App() {
         {ABAS.map((aba) => (
           <button
             key={aba.id}
+            type="button"
             className={aba.id === abaAtual ? 'aba ativa' : 'aba'}
             onClick={() => setAbaAtual(aba.id)}
           >

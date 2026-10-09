@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { chamarApi } from '../api';
 
-// Campos opcionais não têm "obrigatorio"; o servidor valida o resto
 const CAMPOS = [
   { nome: 'nome', rotulo: 'Nome' },
   { nome: 'codigo_barras', rotulo: 'Código de barras (opcional)' },
@@ -21,7 +20,8 @@ export default function Produtos() {
 
   async function carregar() {
     try {
-      setLista(await chamarApi('/produtos'));
+      const dados = await chamarApi('/produtos');
+      setLista(dados);
     } catch (erro) {
       setMensagem({ tipo: 'erro', texto: erro.message });
     }
@@ -32,14 +32,13 @@ export default function Produtos() {
   }, []);
 
   function mudar(evento) {
-    setForm({ ...form, [evento.target.name]: evento.target.value });
+    const { name, value } = evento.target;
+    setForm((formAtual) => ({ ...formAtual, [name]: value }));
   }
 
   async function salvar(evento) {
     evento.preventDefault();
 
-    // O campo de quantidade chega como texto; o servidor espera um número.
-    // Se estiver vazio, não enviamos e o servidor começa em 0.
     const dados = { ...form };
     if (dados.quantidade_estoque === '') {
       delete dados.quantidade_estoque;
@@ -48,10 +47,14 @@ export default function Produtos() {
     }
 
     try {
-      await chamarApi('/produtos', { method: 'POST', body: JSON.stringify(dados) });
+      await chamarApi('/produtos', {
+        method: 'POST',
+        body: JSON.stringify(dados),
+      });
+
       setMensagem({ tipo: 'ok', texto: 'Produto cadastrado com sucesso!' });
       setForm(FORM_VAZIO);
-      carregar();
+      await carregar();
     } catch (erro) {
       setMensagem({ tipo: 'erro', texto: erro.message });
     }

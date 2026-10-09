@@ -175,6 +175,23 @@ app.get('/produtos/:id/fornecedores', (req, res) => {
   res.json(fornecedores);
 });
 
+// Remover uma associação produto-fornecedor
+app.delete('/associacoes/:id', (req, res) => {
+  const id = Number(req.params.id);
+
+  if (!Number.isInteger(id)) {
+    return res.status(400).json({ erro: 'O id da associação deve ser um número inteiro.' });
+  }
+
+  const resultado = db.prepare('DELETE FROM produto_fornecedor WHERE id = ?').run(id);
+
+  if (resultado.changes === 0) {
+    return res.status(404).json({ erro: 'Associação não encontrada.' });
+  }
+
+  res.json({ mensagem: 'Associação removida com sucesso.' });
+});
+
 // Liga o servidor e fica esperando pedidos na porta 3000
 app.listen(PORT, () => {
   console.log(`Servidor rodando em http://localhost:${PORT}`);

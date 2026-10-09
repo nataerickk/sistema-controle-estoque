@@ -11,31 +11,46 @@ export default function Associacoes() {
 
   async function carregarAssociacoes() {
     try {
-      setAssociacoes(await chamarApi('/associacoes'));
+      const dados = await chamarApi('/associacoes');
+      setAssociacoes(dados);
     } catch (erro) {
       setMensagem({ tipo: 'erro', texto: erro.message });
     }
   }
 
-  // Ao abrir a tela, busca produtos, fornecedores e associações já existentes
-  useEffect(() => {
-    async function carregarTudo() {
-      try {
-        setProdutos(await chamarApi('/produtos'));
-        setFornecedores(await chamarApi('/fornecedores'));
-        setAssociacoes(await chamarApi('/associacoes'));
-      } catch (erro) {
-        setMensagem({ tipo: 'erro', texto: erro.message });
-      }
+  async function carregarTudo() {
+    try {
+      const [produtosCarregados, fornecedoresCarregados, associacoesCarregadas] = await Promise.all([
+        chamarApi('/produtos'),
+        chamarApi('/fornecedores'),
+        chamarApi('/associacoes'),
+      ]);
+
+      setProdutos(produtosCarregados);
+      setFornecedores(fornecedoresCarregados);
+      setAssociacoes(associacoesCarregadas);
+    } catch (erro) {
+      setMensagem({ tipo: 'erro', texto: erro.message });
     }
+  }
+
+  useEffect(() => {
     carregarTudo();
   }, []);
+
+  function limparSelecao() {
+    setProdutoId('');
+    setFornecedorId('');
+  }
 
   async function salvar(evento) {
     evento.preventDefault();
 
-    if (!produtoId || !fornecedorId) {
-      setMensagem({ tipo: 'erro', texto: 'Escolha um produto e um fornecedor.' });
+    const produtoSelecionado = Number(produtoId);
+    const fornecedorSelecionado = Number(fornecedorId);
+
+    if (!produtoId || !fornecedorId || !Number.isInteger(produtoSelecionado) || !Number.isInteger(fornecedorSelecionado)) {
+      setMensagem({ tipo: 'erro', texto: 'Escolha um produto e um fornecedor válidos.' });
       return;
     }
 
@@ -43,14 +58,24 @@ export default function Associacoes() {
       await chamarApi('/associacoes', {
         method: 'POST',
         body: JSON.stringify({
-          produto_id: Number(produtoId),
-          fornecedor_id: Number(fornecedorId),
+          produto_id: produtoSelecionado,
+          fornecedor_id: fornecedorSelecionado,
         }),
       });
+
       setMensagem({ tipo: 'ok', texto: 'Produto associado ao fornecedor com sucesso!' });
-      setProdutoId('');
-      setFornecedorId('');
-      carregarAssociacoes();
+      limparSelecao();
+      await carregarAssociacoes();
+    } catch (erro) {
+      setMensagem({ tipo: 'erro', texto: erro.message });
+    }
+  }
+
+  async function desassociar(id) {
+    try {
+      await chamarApi(`/associacoes/${id}`, { method: 'DELETE' });
+      setMensagem({ tipo: 'ok', texto: 'Fornecedor desassociado com sucesso!' });
+      await carregarAssociacoes();
     } catch (erro) {
       setMensagem({ tipo: 'erro', texto: erro.message });
     }
@@ -99,6 +124,7 @@ export default function Associacoes() {
               <tr>
                 <th>Produto</th>
                 <th>Fornecedor</th>
+                <th>Ação</th>
               </tr>
             </thead>
             <tbody>
@@ -106,6 +132,11 @@ export default function Associacoes() {
                 <tr key={a.id}>
                   <td>{a.produto}</td>
                   <td>{a.fornecedor}</td>
+                  <td>
+                    <button type="button" onClick={() => desassociar(a.id)}>
+                      Desassociar
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>

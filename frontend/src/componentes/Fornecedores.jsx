@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { chamarApi } from '../api';
 
-// Os campos do formulário: o "nome" é o mesmo nome da coluna no banco
 const CAMPOS = [
   { nome: 'nome_empresa', rotulo: 'Nome da empresa' },
   { nome: 'cnpj', rotulo: 'CNPJ' },
@@ -14,34 +13,40 @@ const CAMPOS = [
 const FORM_VAZIO = Object.fromEntries(CAMPOS.map((c) => [c.nome, '']));
 
 export default function Fornecedores() {
-  const [lista, setLista] = useState([]); // fornecedores que vieram do servidor
-  const [form, setForm] = useState(FORM_VAZIO); // o que está digitado no formulário
-  const [mensagem, setMensagem] = useState(null); // aviso de sucesso ou erro
+  const [lista, setLista] = useState([]);
+  const [form, setForm] = useState(FORM_VAZIO);
+  const [mensagem, setMensagem] = useState(null);
 
   async function carregar() {
     try {
-      setLista(await chamarApi('/fornecedores'));
+      const dados = await chamarApi('/fornecedores');
+      setLista(dados);
     } catch (erro) {
       setMensagem({ tipo: 'erro', texto: erro.message });
     }
   }
 
-  // Roda uma vez, quando a tela aparece: busca a lista no servidor
   useEffect(() => {
     carregar();
   }, []);
 
   function mudar(evento) {
-    setForm({ ...form, [evento.target.name]: evento.target.value });
+    const { name, value } = evento.target;
+    setForm((formAtual) => ({ ...formAtual, [name]: value }));
   }
 
   async function salvar(evento) {
-    evento.preventDefault(); // impede a página de recarregar ao enviar
+    evento.preventDefault();
+
     try {
-      await chamarApi('/fornecedores', { method: 'POST', body: JSON.stringify(form) });
+      await chamarApi('/fornecedores', {
+        method: 'POST',
+        body: JSON.stringify(form),
+      });
+
       setMensagem({ tipo: 'ok', texto: 'Fornecedor cadastrado com sucesso!' });
       setForm(FORM_VAZIO);
-      carregar();
+      await carregar();
     } catch (erro) {
       setMensagem({ tipo: 'erro', texto: erro.message });
     }
