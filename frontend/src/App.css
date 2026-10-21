@@ -190,3 +190,27 @@ select.invalido {
   border-radius: 6px;
   border: 1px solid #c4ccd4;
 }
+
+/* Associacao: seletor de produto e detalhes */
+.seletor-produto {
+  padding: 18px;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.detalhes-produto {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 18px;
+  margin-top: 14px;
+  padding: 18px;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.detalhes-produto p {
+  margin: 4px 0;
+}

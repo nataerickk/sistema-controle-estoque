@@ -161,7 +161,7 @@ app.get('/produtos/:id/fornecedores', (req, res) => {
 
   const fornecedores = db
     .prepare(
-      `SELECT f.*
+      `SELECT f.*, pf.id AS associacao_id
        FROM fornecedores f
        JOIN produto_fornecedor pf ON pf.fornecedor_id = f.id
        WHERE pf.produto_id = ?`
