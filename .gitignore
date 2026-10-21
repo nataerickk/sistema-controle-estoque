@@ -2,3 +2,4 @@ node_modules
 *.db
 resultado-testes.txt
 servidor-log.txt
+resultado-*.txt
