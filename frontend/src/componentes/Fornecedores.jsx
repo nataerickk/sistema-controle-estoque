@@ -2,12 +2,12 @@ import { useEffect, useState } from 'react';
 import { chamarApi } from '../api';
 
 const CAMPOS = [
-  { nome: 'nome_empresa', rotulo: 'Nome da empresa' },
-  { nome: 'cnpj', rotulo: 'CNPJ' },
-  { nome: 'endereco', rotulo: 'Endereço' },
-  { nome: 'telefone', rotulo: 'Telefone' },
-  { nome: 'email', rotulo: 'E-mail', tipo: 'email' },
-  { nome: 'contato_principal', rotulo: 'Contato principal' },
+  { nome: 'nome_empresa', rotulo: 'Nome da empresa', placeholder: 'Insira o nome da empresa' },
+  { nome: 'cnpj', rotulo: 'CNPJ', placeholder: '00.000.000/0000-00' },
+  { nome: 'endereco', rotulo: 'Endere\u00e7o', placeholder: 'Insira o endere\u00e7o completo da empresa' },
+  { nome: 'telefone', rotulo: 'Telefone', placeholder: '(00) 0000-0000' },
+  { nome: 'email', rotulo: 'E-mail', tipo: 'email', placeholder: 'exemplo@fornecedor.com' },
+  { nome: 'contato_principal', rotulo: 'Contato principal', placeholder: 'Nome do contato principal' },
 ];
 
 const FORM_VAZIO = Object.fromEntries(CAMPOS.map((c) => [c.nome, '']));
@@ -15,6 +15,7 @@ const FORM_VAZIO = Object.fromEntries(CAMPOS.map((c) => [c.nome, '']));
 export default function Fornecedores() {
   const [lista, setLista] = useState([]);
   const [form, setForm] = useState(FORM_VAZIO);
+  const [erros, setErros] = useState({});
   const [mensagem, setMensagem] = useState(null);
 
   async function carregar() {
@@ -33,10 +34,13 @@ export default function Fornecedores() {
   function mudar(evento) {
     const { name, value } = evento.target;
     setForm((formAtual) => ({ ...formAtual, [name]: value }));
+    setErros((errosAtuais) => ({ ...errosAtuais, [name]: undefined }));
   }
 
   async function salvar(evento) {
     evento.preventDefault();
+    setErros({});
+    setMensagem(null);
 
     try {
       await chamarApi('/fornecedores', {
@@ -48,6 +52,7 @@ export default function Fornecedores() {
       setForm(FORM_VAZIO);
       await carregar();
     } catch (erro) {
+      setErros(erro.campos || {});
       setMensagem({ tipo: 'erro', texto: erro.message });
     }
   }
@@ -55,16 +60,20 @@ export default function Fornecedores() {
   return (
     <section>
       <h2>Cadastrar fornecedor</h2>
-      <form onSubmit={salvar}>
+      <form onSubmit={salvar} noValidate>
         {CAMPOS.map((campo) => (
           <label key={campo.nome}>
             {campo.rotulo}
             <input
               name={campo.nome}
               type={campo.tipo || 'text'}
+              placeholder={campo.placeholder}
               value={form[campo.nome]}
               onChange={mudar}
+              className={erros[campo.nome] ? 'invalido' : ''}
+              aria-invalid={erros[campo.nome] ? 'true' : 'false'}
             />
+            {erros[campo.nome] && <span className="erro-campo">{erros[campo.nome]}</span>}
           </label>
         ))}
         <button type="submit">Cadastrar</button>
@@ -82,7 +91,7 @@ export default function Fornecedores() {
               <tr>
                 <th>Empresa</th>
                 <th>CNPJ</th>
-                <th>Endereço</th>
+                <th>{'Endere\u00e7o'}</th>
                 <th>Telefone</th>
                 <th>E-mail</th>
                 <th>Contato</th>

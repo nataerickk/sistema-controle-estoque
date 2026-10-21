@@ -136,3 +136,15 @@ th {
   text-transform: uppercase;
   letter-spacing: 0.03em;
 }
+
+/* Erro ao lado de cada campo */
+.erro-campo {
+  color: #b91c1c;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+input.invalido {
+  border-color: #dc2626;
+  background: #fef2f2;
+}

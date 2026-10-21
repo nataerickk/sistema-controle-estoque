@@ -1,9 +1,10 @@
-// api.js - único ponto de comunicação entre a tela (React) e o servidor (backend)
+// api.js - unico ponto de comunicacao entre a tela (React) e o servidor (backend)
 
 const URL_BASE = 'http://localhost:3000';
 
-// Faz um pedido ao servidor e devolve a resposta já convertida (JSON).
-// Se o servidor responder com erro (400, 404, 409...), lança um Error com a mensagem dele.
+// Faz um pedido ao servidor e devolve a resposta ja convertida (JSON).
+// Se o servidor responder com erro (400, 404, 409...), lanca um Error com a mensagem dele.
+// Se o servidor mandar erros por campo, eles ficam em erro.campos.
 export async function chamarApi(caminho, opcoes = {}) {
   let resposta;
   try {
@@ -12,12 +13,14 @@ export async function chamarApi(caminho, opcoes = {}) {
       ...opcoes,
     });
   } catch {
-    throw new Error('Não consegui falar com o servidor. Ele está ligado?');
+    throw new Error('N\u00e3o consegui falar com o servidor. Ele est\u00e1 ligado?');
   }
 
   const dados = await resposta.json();
   if (!resposta.ok) {
-    throw new Error(dados.erro || 'Erro inesperado.');
+    const erro = new Error(dados.erro || 'Erro inesperado.');
+    erro.campos = dados.campos;
+    throw erro;
   }
   return dados;
 }
