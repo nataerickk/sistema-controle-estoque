@@ -3,6 +3,7 @@
 const express = require('express');
 const cors = require('cors');
 const db = require('./db');
+const { validarFornecedor } = require('./validacoes');
 
 const app = express();
 app.disable('x-powered-by');
@@ -25,12 +26,12 @@ app.get('/', (req, res) => {
 
 // Cadastrar um fornecedor novo
 app.post('/fornecedores', (req, res) => {
-  const { nome_empresa, cnpj, endereco, telefone, email, contato_principal } = req.body;
-
-  // Todos os campos são obrigatórios
-  if (!nome_empresa || !cnpj || !endereco || !telefone || !email || !contato_principal) {
-    return res.status(400).json({ erro: 'Todos os campos são obrigatórios.' });
+  // Confere cada campo e junta os erros (campo -> mensagem)
+  const { erros, dados } = validarFornecedor(req.body ?? {});
+  if (Object.keys(erros).length > 0) {
+    return res.status(400).json({ erro: "Corrija os campos indicados.", campos: erros });
   }
+  const { nome_empresa, cnpj, endereco, telefone, email, contato_principal } = dados;
 
   try {
     const resultado = db
