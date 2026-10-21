@@ -1,5 +1,9 @@
 // validacoes.js - regras para conferir os dados antes de salvar no banco
 
+function texto(valor) {
+  return String(valor ?? "").trim();
+}
+
 function somenteDigitos(valor) {
   return String(valor ?? "").replace(/\D/g, "");
 }
@@ -11,12 +15,12 @@ function formatarCnpj(digitos) {
 function validarFornecedor(entrada) {
   const erros = {};
 
-  const nome_empresa = String(entrada.nome_empresa ?? "").trim();
-  const cnpjTexto = String(entrada.cnpj ?? "").trim();
-  const endereco = String(entrada.endereco ?? "").trim();
-  const telefone = String(entrada.telefone ?? "").trim();
-  const email = String(entrada.email ?? "").trim();
-  const contato_principal = String(entrada.contato_principal ?? "").trim();
+  const nome_empresa = texto(entrada.nome_empresa);
+  const cnpjTexto = texto(entrada.cnpj);
+  const endereco = texto(entrada.endereco);
+  const telefone = texto(entrada.telefone);
+  const email = texto(entrada.email);
+  const contato_principal = texto(entrada.contato_principal);
 
   if (!nome_empresa) {
     erros.nome_empresa = "Informe o nome da empresa.";
@@ -62,4 +66,76 @@ function validarFornecedor(entrada) {
   return { erros, dados };
 }
 
-module.exports = { validarFornecedor };
+function validarProduto(entrada) {
+  const erros = {};
+
+  const nome = texto(entrada.nome);
+  const codigoTexto = texto(entrada.codigo_barras);
+  const descricao = texto(entrada.descricao);
+  const quantidadeTexto = texto(entrada.quantidade_estoque);
+  const categoriaEscolhida = texto(entrada.categoria);
+  const categoriaOutro = texto(entrada.categoria_outro);
+  const validade = texto(entrada.data_validade);
+  const imagemTexto = texto(entrada.imagem);
+
+  if (!nome) {
+    erros.nome = "Informe o nome do produto.";
+  }
+
+  if (codigoTexto && !/^\d+$/.test(codigoTexto)) {
+    erros.codigo_barras = "C\u00f3digo de barras inv\u00e1lido. Use apenas n\u00fameros.";
+  }
+
+  if (!descricao) {
+    erros.descricao = "Informe a descri\u00e7\u00e3o do produto.";
+  }
+
+  let quantidade = 0;
+  if (quantidadeTexto !== "") {
+    quantidade = Number(quantidadeTexto);
+    if (!Number.isInteger(quantidade) || quantidade < 0) {
+      erros.quantidade_estoque = "Quantidade inv\u00e1lida. Use um n\u00famero inteiro maior ou igual a zero.";
+    }
+  }
+
+  let categoria = categoriaEscolhida;
+  if (!categoriaEscolhida) {
+    erros.categoria = "Selecione uma categoria.";
+  } else if (categoriaEscolhida === "Outro") {
+    if (!categoriaOutro) {
+      erros.categoria_outro = "Especifique a categoria.";
+    } else {
+      categoria = categoriaOutro;
+    }
+  }
+
+  if (validade) {
+    const data = new Date(validade + "T00:00:00Z");
+    const dataValida = /^\d{4}-\d{2}-\d{2}$/.test(validade) && !Number.isNaN(data.getTime()) && data.toISOString().slice(0, 10) === validade;
+    if (!dataValida) {
+      erros.data_validade = "Data de validade inv\u00e1lida.";
+    }
+  }
+
+  if (imagemTexto) {
+    if (!/^data:image\/(png|jpeg|gif|webp);base64,/.test(imagemTexto)) {
+      erros.imagem = "Imagem inv\u00e1lida. Envie um arquivo PNG, JPG, GIF ou WEBP.";
+    } else if (imagemTexto.length > 3000000) {
+      erros.imagem = "A imagem deve ter no m\u00e1ximo 2 MB.";
+    }
+  }
+
+  const dados = {
+    nome,
+    codigo_barras: codigoTexto || null,
+    descricao,
+    quantidade,
+    categoria,
+    data_validade: validade || null,
+    imagem: imagemTexto || null,
+  };
+
+  return { erros, dados };
+}
+
+module.exports = { validarFornecedor, validarProduto };

@@ -3,7 +3,7 @@
 const express = require('express');
 const cors = require('cors');
 const db = require('./db');
-const { validarFornecedor } = require('./validacoes');
+const { validarFornecedor, validarProduto } = require('./validacoes');
 
 const app = express();
 app.disable('x-powered-by');
@@ -13,7 +13,7 @@ const PORT = 3000;
 app.use(cors({ origin: 'http://localhost:5173' }));
 
 // Permite que o servidor entenda dados enviados em formato JSON
-app.use(express.json());
+app.use(express.json({ limit: '5mb' }));
 
 // Rota de teste: só para confirmar que o servidor está de pé
 app.get('/', (req, res) => {
@@ -64,18 +64,12 @@ app.get('/fornecedores', (req, res) => {
 
 // Cadastrar um produto novo
 app.post('/produtos', (req, res) => {
-  const { nome, codigo_barras, descricao, quantidade_estoque, categoria, data_validade, imagem } = req.body ?? {};
-
-  // Campos obrigatórios (os mesmos que são NOT NULL no banco)
-  if (!nome || !descricao || !categoria) {
-    return res.status(400).json({ erro: 'Nome, descrição e categoria são obrigatórios.' });
+  // Confere cada campo e junta os erros (campo -> mensagem)
+  const { erros, dados } = validarProduto(req.body ?? {});
+  if (Object.keys(erros).length > 0) {
+    return res.status(400).json({ erro: "Corrija os campos indicados.", campos: erros });
   }
-
-  // Se a quantidade não vier, começa em 0; se vier, tem que ser inteiro e >= 0
-  const quantidade = quantidade_estoque ?? 0;
-  if (!Number.isInteger(quantidade) || quantidade < 0) {
-    return res.status(400).json({ erro: 'A quantidade em estoque deve ser um número inteiro maior ou igual a zero.' });
-  }
+  const { nome, codigo_barras, descricao, quantidade, categoria, data_validade, imagem } = dados;
 
   try {
     const resultado = db
