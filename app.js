@@ -45,7 +45,7 @@ app.post('/fornecedores', (req, res) => {
   } catch (error_) {
     // O banco recusa CNPJ repetido (por causa do UNIQUE que criamos)
     if (error_.code === 'SQLITE_CONSTRAINT_UNIQUE') {
-      return res.status(409).json({ erro: 'Já existe um fornecedor com esse CNPJ.' });
+      return res.status(409).json({ erro: 'Fornecedor com esse CNPJ já está cadastrado!' });
     }
     res.status(500).json({ erro: 'Erro ao cadastrar fornecedor.' });
   }
@@ -88,7 +88,7 @@ app.post('/produtos', (req, res) => {
     res.status(201).json({ id: resultado.lastInsertRowid, nome, categoria, quantidade_estoque: quantidade });
   } catch (error_) {
     if (error_.code === 'SQLITE_CONSTRAINT_UNIQUE') {
-      return res.status(409).json({ erro: 'Já existe um produto com esse código de barras.' });
+      return res.status(409).json({ erro: 'Produto com este código de barras já está cadastrado!' });
     }
     res.status(500).json({ erro: 'Erro ao cadastrar produto.' });
   }
@@ -132,7 +132,7 @@ app.post('/associacoes', (req, res) => {
   } catch (error_) {
     // O banco recusa a mesma dupla produto + fornecedor duas vezes
     if (error_.code === 'SQLITE_CONSTRAINT_UNIQUE') {
-      return res.status(409).json({ erro: 'Esse produto já está associado a esse fornecedor.' });
+      return res.status(409).json({ erro: 'Fornecedor já está associado a este produto!' });
     }
     res.status(500).json({ erro: 'Erro ao associar produto e fornecedor.' });
   }

@@ -63,7 +63,7 @@ export default function Associacoes() {
         }),
       });
 
-      setMensagem({ tipo: 'ok', texto: 'Produto associado ao fornecedor com sucesso!' });
+      setMensagem({ tipo: 'ok', texto: 'Fornecedor associado com sucesso ao produto!' });
       limparSelecao();
       await carregarAssociacoes();
     } catch (erro) {
